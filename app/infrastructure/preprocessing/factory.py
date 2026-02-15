@@ -1,8 +1,8 @@
-from app.config import Config
+from app.config import settings
 from app.interfaces.preprocessor import I_ImagePreprocessor
 
 
-def make_preprocessor(config: Config) -> I_ImagePreprocessor:
+def make_preprocessor(config=settings) -> I_ImagePreprocessor:
     """
     Instantiate and return the correct preprocessor based on config.
 

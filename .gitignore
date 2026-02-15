@@ -51,7 +51,6 @@ Thumbs.db
 # Data & Models
 # --------------------------
 # Your product dataset (images)
-data/products/
-data/uploads/
+data/
 
 # FAISS index and ma

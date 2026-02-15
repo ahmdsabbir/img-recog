@@ -5,6 +5,7 @@ from app.config import settings
 from app.services.recommender import RecommenderService
 from app.infrastructure.embedding.clip_model import ClipEmbeddingModel
 from app.infrastructure.vector_store.faiss_store import FaissVectorStore
+from app.infrastructure.preprocessing.factory import make_preprocessor
 
 
 def main():
@@ -16,9 +17,21 @@ def main():
         default="data/products",
         help="Directory of product images for rebuild",
     )
+    parser.add_argument(
+        "--save_preprocessed",
+        action="store_true",
+        help="Save preprocessed images to data/preprocessed directory",
+    )
+    parser.add_argument(
+        "--preprocessed_dir",
+        default="data/preprocessed",
+        help="Directory to save preprocessed images (default: data/preprocessed)",
+    )
     args = parser.parse_args()
 
-    embedding = ClipEmbeddingModel()
+    # Create preprocessor from config
+    preprocessor = make_preprocessor(settings)
+    embedding = ClipEmbeddingModel(preprocessor=preprocessor)
     vector_store = FaissVectorStore()
     recommender = RecommenderService(embedding, vector_store)
 
@@ -30,10 +43,17 @@ def main():
         vectors = []
         id_to_filename = {}  # NEW: mapping
 
+        # Create preprocessed directory if saving preprocessed images
+        if args.save_preprocessed:
+            os.makedirs(args.preprocessed_dir, exist_ok=True)
+            print(f"Saving preprocessed images to: {args.preprocessed_dir}")
+
         for idx, filename in enumerate(os.listdir(args.products_dir)):
             path = os.path.join(args.products_dir, filename)
             print(f"Processing {filename}...")
-            embedding_vector = embedding.encode_image(path)
+            embedding_vector = embedding.encode_image(
+                path, save_preprocessed=args.save_preprocessed, save_dir=args.preprocessed_dir
+            )
             ids.append(idx)
             vectors.append(embedding_vector)
 
@@ -62,6 +82,11 @@ def main():
             print("FAISS index not found. Rebuild index first using 'rebuild' command.")
             return
 
+        # Create preprocessed directory if saving preprocessed images
+        if args.save_preprocessed:
+            os.makedirs(args.preprocessed_dir, exist_ok=True)
+            print(f"Saving preprocessed images to: {args.preprocessed_dir}")
+
         # Load mapping JSON
         mapping_path = os.path.join(
             os.path.dirname(settings.FAISS_INDEX_PATH), "id_to_filename.json"
@@ -72,7 +97,11 @@ def main():
             id_to_filename = json.load(f)
 
         vector_store.load()
-        ids, scores = recommender.recommend(args.image)
+        ids, scores = recommender.recommend(
+            args.image,
+            save_preprocessed=args.save_preprocessed,
+            save_dir=args.preprocessed_dir,
+        )
 
         print("\nTop Results:")
         for i, (pid, score) in enumerate(zip(ids, scores)):

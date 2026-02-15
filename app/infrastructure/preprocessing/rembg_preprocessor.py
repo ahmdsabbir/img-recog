@@ -68,9 +68,9 @@ class RembgPreprocessor(I_ImagePreprocessor):
     # Public API (implements IImagePreprocessor)
     # ------------------------------------------
     def preprocess(self, img: Image.Image) -> Image.Image:
-        img = img.convert("RGB")
+        img = img.convert("RGBA")
         img_rgba = self._remove_bg(img_rgba=img)
-        img_rgba = self._crop_to_foreground(img_rgba=img)
+        img_rgba = self._crop_to_foreground(img_rgba=img_rgba)
         img_rgba = self._pad_to_square(img_rgba=img_rgba)
         img_rgba = self._resize(image=img_rgba)
 
@@ -109,8 +109,10 @@ class RembgPreprocessor(I_ImagePreprocessor):
         if not rows.any():
             return img_rgba
 
-        top, bottom = int(np.where(rows)[0][[0, -1]])
-        left, right = int(np.where(cols)[0][[0, -1]])
+        row_indices = np.where(rows)[0]
+        col_indices = np.where(cols)[0]
+        top, bottom = int(row_indices[0]), int(row_indices[-1])
+        left, right = int(col_indices[0]), int(col_indices[-1])
 
         h = bottom - top
         w = right - left
