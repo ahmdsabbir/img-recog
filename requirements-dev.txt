@@ -1,0 +1,8 @@
+-r requirements-prod.txt
+
+ipython
+pytest
+black
+isort
+mypy
+rich

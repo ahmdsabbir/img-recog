@@ -1,0 +1,57 @@
+# --------------------------
+# Python
+# --------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.so
+
+# venv / virtual environments
+venv/
+env/
+.env/
+.env.local
+.env.*.local
+.env
+
+# pip / package management
+*.egg
+*.egg-info/
+dist/
+build/
+*.wheel
+
+# --------------------------
+# IDEs / Editors
+# --------------------------
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.DS_Store
+
+# --------------------------
+# Logs
+# --------------------------
+*.log
+logs/
+*.out
+*.err
+
+# --------------------------
+# OS-specific
+# --------------------------
+.DS_Store
+Thumbs.db
+
+# --------------------------
+# Data & Models
+# --------------------------
+# Your product dataset (images)
+data/products/
+data/uploads/
+
+# FAISS index and ma
