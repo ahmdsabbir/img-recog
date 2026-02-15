@@ -11,7 +11,11 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("command", choices=["query", "rebuild"])
     parser.add_argument("--image", help="Path to image file for query")
-    parser.add_argument("--products_dir", default="data/products", help="Directory of product images for rebuild")
+    parser.add_argument(
+        "--products_dir",
+        default="data/products",
+        help="Directory of product images for rebuild",
+    )
     args = parser.parse_args()
 
     embedding = ClipEmbeddingModel()
@@ -21,7 +25,6 @@ def main():
     if args.command == "rebuild":
         import numpy as np
         import json
-
 
         ids = []
         vectors = []
@@ -42,12 +45,13 @@ def main():
 
         # save mapping JSON
         os.makedirs(os.path.dirname(vector_store.index_path), exist_ok=True)
-        mapping_path = os.path.join(os.path.dirname(vector_store.index_path), "id_to_filename.json")
+        mapping_path = os.path.join(
+            os.path.dirname(vector_store.index_path), "id_to_filename.json"
+        )
         with open(mapping_path, "w") as f:
             json.dump(id_to_filename, f, indent=2)
 
         print("Index rebuilt successfully!")
-
 
     elif args.command == "query":
         if args.image is None:
@@ -59,8 +63,11 @@ def main():
             return
 
         # Load mapping JSON
-        mapping_path = os.path.join(os.path.dirname(settings.FAISS_INDEX_PATH), "id_to_filename.json")
+        mapping_path = os.path.join(
+            os.path.dirname(settings.FAISS_INDEX_PATH), "id_to_filename.json"
+        )
         import json
+
         with open(mapping_path, "r") as f:
             id_to_filename = json.load(f)
 
@@ -70,7 +77,9 @@ def main():
         print("\nTop Results:")
         for i, (pid, score) in enumerate(zip(ids, scores)):
             filename = id_to_filename.get(str(pid), "unknown")
-            print(f"{i+1}. Product ID: {pid} | Filename: {filename} | Distance: {score:.4f}")
+            print(
+                f"{i + 1}. Product ID: {pid} | Filename: {filename} | Distance: {score:.4f}"
+            )
 
 
 if __name__ == "__main__":

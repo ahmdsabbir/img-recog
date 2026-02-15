@@ -6,3 +6,4 @@ black
 isort
 mypy
 rich
+ruff

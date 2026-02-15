@@ -6,3 +6,4 @@ pillow
 numpy
 sqlalchemy
 python-dotenv
+rembg[cpu]

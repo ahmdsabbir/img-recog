@@ -7,7 +7,6 @@ from app.config import settings
 
 
 class FaissVectorStore(VectorStore):
-
     def __init__(self):
         self.index_path = settings.FAISS_INDEX_PATH
         self.dimension = settings.EMBEDDING_DIM

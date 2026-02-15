@@ -13,7 +13,6 @@ class ClipEmbeddingModel(EmbeddingModel):
         self.model = CLIPModel.from_pretrained(settings.EMBEDDING_MODEL).to(self.device)
         self.processor = CLIPProcessor.from_pretrained(settings.EMBEDDING_MODEL)
 
-    
     def encode_image(self, image_path: str) -> np.ndarray:
         image = Image.open(image_path).convert("RGB")
         inputs = self.processor(images=image, return_tensors="pt")

@@ -7,6 +7,7 @@ from app.infrastructure.vector_store.faiss_store import FaissVectorStore
 
 PRODUCTS_PATH = "data/products"
 
+
 def main():
     model = ClipEmbeddingModel()
     store = FaissVectorStore()
@@ -29,6 +30,7 @@ def main():
     store.save()
 
     print("Index built successfully!")
+
 
 if __name__ == "__main__":
     main()
