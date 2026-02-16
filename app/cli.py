@@ -115,18 +115,21 @@ def main():
             print("Error: --image argument is required for classify")
             return
 
-        labels = [
-            "red shoe",
-            "blue sneaker",
-            "leather bag",
-            "gray cap",
-            "black t-shirt"
-        ]
+        # Category classification
+        from app.services.category_classifier_service import CategoryClassifierService
+        from app.services.product_attribute_service import ProductAttributeService
 
-        results = embedding.classify_img(args.image, ["a photo of " + itm for itm in labels])
+        category_service = CategoryClassifierService(embedding_model=embedding)
+        category, cat_conf = category_service.classify(args.image)
+        print(f"Category: {category} (confidence {cat_conf:.2f})")
 
-        for label, score in results:
-            print(f'{label} -> {score: .4f}')
+        # Attribute classification based on category
+        attribute_service = ProductAttributeService(embedding_model=embedding)
+        attributes = attribute_service.classify(args.image, category=category)
+
+        print("Attributes:")
+        for attr_name, info in attributes.items():
+            print(f" - {attr_name}: {info['label']} (confidence {info['confidence']:.2f})")
 
 
 if __name__ == "__main__":

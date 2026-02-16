@@ -6,6 +6,7 @@ A visual product recommendation system using CLIP embeddings and FAISS vector se
 
 - **CLIP-based embeddings** - OpenAI's CLIP model for semantic image understanding
 - **FAISS vector search** - Fast similarity search for product recommendations
+- **Zero-shot classification** - Classify images into categories and extract attributes without training
 - **Background removal** - Optional rembg-based preprocessing to isolate products
 - **Preprocessed image saving** - Save processed images for inspection/debugging
 - **Dual-mode preprocessing** - Choose between background removal or passthrough mode
@@ -121,32 +122,30 @@ python -m app.cli query \
 
 ### Classifying Images
 
-Classify an image against predefined labels using CLIP's zero-shot classification:
+Classify an image into categories and extract product attributes using CLIP's zero-shot classification:
 
 ```bash
 # Basic classification
 python -m app.cli classify --image path/to/image.jpg
 ```
 
-**Default labels:**
-- red shoe
-- blue sneaker
-- leather bag
-- gray cap
-- black t-shirt
+The classifier performs a two-step classification:
 
-The system returns probability scores for each label, ranked from highest to lowest.
+1. **Category Classification** - Identifies the product category (e.g., "shoe", "bag", "clothing")
+2. **Attribute Classification** - Extracts relevant attributes based on the category (e.g., color, style, material)
 
 **Example output:**
 ```
-a photo of red shoe -> 0.8234
-a photo of leather bag -> 0.6512
-a photo of blue sneaker -> 0.4321
-a photo of gray cap -> 0.2105
-a photo of black t-shirt -> 0.0987
+Category: shoe (confidence 0.92)
+Attributes:
+ - type: sneaker (confidence 0.88)
+ - color: red (confidence 0.85)
+ - material: leather (confidence 0.72)
 ```
 
-To customize labels, edit the `labels` list in `app/cli.py`.
+The classification uses predefined category and attribute labels. To customize:
+- Edit `app/services/category_classifier_service.py` for category labels
+- Edit `app/services/product_attribute_service.py` for attribute labels
 
 ### CLI Options
 
@@ -246,7 +245,13 @@ mypy app/
    - Searches FAISS index for nearest neighbors
    - Returns top-K similar product IDs with distance scores
 
-3. **Preprocessing Pipeline**
+3. **Classification (classify)**
+   - Loads and preprocesses the query image
+   - Classifies into category using CLIP zero-shot classification
+   - Extracts category-specific attributes (color, style, material, etc.)
+   - Returns category and attributes with confidence scores
+
+4. **Preprocessing Pipeline**
    - Ensures consistent input format (RGB, square, 224×224)
    - Removes background noise for better matching
    - Preserves product aspect ratio via square padding
