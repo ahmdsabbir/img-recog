@@ -12,9 +12,10 @@ class CategoryClassifierService:
 
     
     def classify(self, img_path: str):
-        results = self.embedding_model.classify_img(img_path=img_path, labels=self.labels)
+        results = self.embedding_model.classify_img_zeroshot(img_path=img_path, labels=self.labels)
         best_label, confidence = results[0]
 
+        # Clean up label text
         category = best_label.replace("a photo of a ", "")
 
         return category, confidence

@@ -6,7 +6,8 @@ A visual product recommendation system using CLIP embeddings and FAISS vector se
 
 - **CLIP-based embeddings** - OpenAI's CLIP model for semantic image understanding
 - **FAISS vector search** - Fast similarity search for product recommendations
-- **Zero-shot classification** - Classify images into categories and extract attributes without training
+- **Zero-shot classification** - Classify images into categories and attributes without training using CLIP
+- **Trainable attribute classifiers** - Train custom attribute classifiers using your own labeled data
 - **Background removal** - Optional rembg-based preprocessing to isolate products
 - **Preprocessed image saving** - Save processed images for inspection/debugging
 - **Dual-mode preprocessing** - Choose between background removal or passthrough mode
@@ -24,11 +25,15 @@ img-recog/
 │   │   ├── preprocessing/      # Image preprocessors
 │   │   └── vector_store/       # FAISS vector store
 │   ├── interfaces/             # Abstract interfaces
-│   └── services/               # Business logic
+│   ├── models/                 # PyTorch model definitions
+│   ├── services/               # Business logic
+│   └── training/               # Training scripts and utilities
 ├── data/
 │   ├── products/               # Product images for indexing
 │   ├── preprocessed/           # Saved preprocessed images
+│   ├── training/               # Training data organized by category/attribute
 │   └── faiss_index/            # FAISS index files
+├── models/                     # Trained attribute classifier models
 ├── tests/                      # Test suite
 ├── requirements-prod.txt       # Production dependencies
 ├── requirements-dev.txt        # Development dependencies
@@ -113,50 +118,125 @@ python -m app.cli query --image path/to/query.jpg
 # Query with preprocessed image saved for inspection
 python -m app.cli query --image path/to/query.jpg --save_preprocessed
 
-# Query with custom output directory
+# Query for custom output directory
 python -m app.cli query \
   --image path/to/query.jpg \
   --save_preprocessed \
   --preprocessed_dir data/query_results
 ```
 
-### Classifying Images
+### Training Attribute Classifiers
 
-Classify an image into categories and extract product attributes using CLIP's zero-shot classification:
+Train custom attribute classifiers using your labeled data:
 
 ```bash
-# Basic classification
+# Train a specific attribute for a category
+python -m app.cli train --category shoe --attribute color
+python -m app.cli train --category shoe --attribute gender
+python -m app.cli train --category shoe --attribute age_group
+```
+
+**Training Data Structure:**
+
+Organize your training images in the following directory structure:
+
+```
+data/training/
+└── <category>/           # e.g., shoe, bag
+    └── <attribute>/      # e.g., color, gender, age_group
+        ├── <class_1>/    # e.g., black, red, blue
+        │   ├── image1.jpg
+        │   ├── image2.jpg
+        │   └── ...
+        ├── <class_2>/
+        │   └── ...
+        └── ...
+```
+
+**Example:**
+```
+data/training/shoe/color/
+├── black/
+│   ├── shoe1.jpg
+│   ├── shoe2.jpg
+│   └── shoe3.jpg
+├── white/
+│   ├── shoe4.jpg
+│   └── ...
+└── red/
+    └── ...
+```
+
+**Training Parameters:**
+- Batch size: 8
+- Learning rate: 1e-4
+- Epochs: 10
+- Optimizer: Adam
+- Loss: CrossEntropyLoss
+
+**Model Storage:**
+Trained models are saved to `models/<category>/<attribute>/`:
+- `model.pt` - PyTorch model weights
+- `classes.json` - Class label mapping
+
+### Classifying Images
+
+Classify an image into categories and extract product attributes. The system supports two modes:
+
+#### Zero-Shot Classification (Default)
+
+Uses CLIP's text prompts to classify without any training data:
+
+```bash
+# Zero-shot classification
 python -m app.cli classify --image path/to/image.jpg
 ```
 
-The classifier performs a two-step classification:
+#### Trained Model Classification
 
-1. **Category Classification** - Identifies the product category (e.g., "shoe", "bag", "clothing")
-2. **Attribute Classification** - Extracts relevant attributes based on the category (e.g., color, style, material)
+Uses your trained attribute classifiers for improved accuracy:
+
+```bash
+# Classification with trained models
+python -m app.cli classify --image path/to/image.jpg --use-trained
+```
+
+If trained models aren't found, the system automatically falls back to zero-shot classification.
+
+**How it works:**
+
+1. **Category Classification** - Always uses zero-shot CLIP to identify the product category (e.g., "shoe", "bag")
+2. **Attribute Classification** - Either:
+   - **Zero-shot**: Uses CLIP text prompts to extract attributes (color, gender, style, etc.)
+   - **Trained models**: Uses your custom-trained classifiers for attributes (more accurate on your data)
 
 **Example output:**
 ```
 Category: shoe (confidence 0.92)
+
 Attributes:
- - type: sneaker (confidence 0.88)
  - color: red (confidence 0.85)
- - material: leather (confidence 0.72)
+ - gender: male (confidence 0.78)
+ - age_group: adult (confidence 0.92)
 ```
 
-The classification uses predefined category and attribute labels. To customize:
-- Edit `app/services/category_classifier_service.py` for category labels
-- Edit `app/services/product_attribute_service.py` for attribute labels
+**Customizing labels:**
+- **Zero-shot labels**: Edit `app/services/zero_shot_attribute_service.py`
+- **Category labels**: Edit `app/services/category_classifier_service.py`
 
 ### CLI Options
 
 ```
 positional arguments:
-  {query,rebuild,classify}  Command to run
+  {query,rebuild,classify,train}  Command to run
 
 options:
   -h, --help            Show help message
   --image IMAGE         Path to query/classify image
   --products_dir DIR    Directory of product images (for rebuild command)
+  --category CATEGORY   Product category for train/classify (e.g., shoe, bag)
+  --attribute ATTRIBUTE Attribute to train (e.g., color, gender, age_group)
+  --use-trained         Use trained models for attribute classification
   --save_preprocessed   Save preprocessed images to data/preprocessed
   --preprocessed_dir DIR
                         Custom directory for preprocessed images
@@ -245,13 +325,22 @@ mypy app/
    - Searches FAISS index for nearest neighbors
    - Returns top-K similar product IDs with distance scores
 
-3. **Classification (classify)**
+3. **Training (train)**
+   - Loads training images from `data/training/<category>/<attribute>/<class>/`
+   - Generates CLIP embeddings for all training images
+   - Trains a linear classifier (AttributeHead) on top of CLIP embeddings
+   - Saves model weights and class mappings to `models/<category>/<attribute>/`
+   - Uses transfer learning - CLIP features are frozen, only the classifier head is trained
+
+4. **Classification (classify)**
    - Loads and preprocesses the query image
-   - Classifies into category using CLIP zero-shot classification
-   - Extracts category-specific attributes (color, style, material, etc.)
+   - **Category**: Uses CLIP zero-shot classification to determine product type
+   - **Attributes**:
+     - **Zero-shot mode**: Uses CLIP text prompts to predict attributes
+     - **Trained mode**: Uses trained AttributeHead models for predictions
    - Returns category and attributes with confidence scores
 
-4. **Preprocessing Pipeline**
+5. **Preprocessing Pipeline**
    - Ensures consistent input format (RGB, square, 224×224)
    - Removes background noise for better matching
    - Preserves product aspect ratio via square padding
@@ -272,6 +361,23 @@ EnvironmentError: rembg is not installed.
 
 ### Out of memory
 **Solution:** Use a smaller embedding model or process images in batches.
+
+### No trained models found
+```
+Error: No trained models found for category: shoe
+```
+**Solution:** Train the attribute models first using the `train` command, or use zero-shot classification without `--use-trained`.
+
+### Training data not found
+```
+FileNotFoundError: [Errno 2] No such file or directory: 'data/training/shoe/color'
+```
+**Solution:** Organize your training images in the correct directory structure under `data/training/<category>/<attribute>/<class>/`.
+
+### Low classification accuracy
+**Solutions:**
+- For zero-shot: Improve prompt text in `app/services/zero_shot_attribute_service.py`
+- For trained models: Add more training data, ensure balanced classes, or adjust training hyperparameters in `app/training/train_attribute.py`
 
 ## License
 

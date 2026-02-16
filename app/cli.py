@@ -10,7 +10,7 @@ from app.infrastructure.preprocessing.factory import make_preprocessor
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=["query", "rebuild", "classify"])
+    parser.add_argument("command", choices=["query", "rebuild", "classify", "train"])
     parser.add_argument("--image", help="Path to image file for query/classify")
     parser.add_argument(
         "--products_dir",
@@ -26,6 +26,19 @@ def main():
         "--preprocessed_dir",
         default="data/preprocessed",
         help="Directory to save preprocessed images (default: data/preprocessed)",
+    )
+    parser.add_argument(
+        "--category",
+        help="Product category for train/classify commands (e.g., shoe, bag)",
+    )
+    parser.add_argument(
+        "--attribute",
+        help="Attribute to train (e.g., color, gender, age_group)",
+    )
+    parser.add_argument(
+        "--use-trained",
+        action="store_true",
+        help="Use trained models for attribute classification (default: zero-shot)",
     )
     args = parser.parse_args()
 
@@ -110,26 +123,52 @@ def main():
                 f"{i + 1}. Product ID: {pid} | Filename: {filename} | Distance: {score:.4f}"
             )
 
+    elif args.command == "train":
+        if args.category is None:
+            print("Error: --category argument is required for train")
+            return
+
+        if args.attribute is None:
+            print("Error: --attribute argument is required for train")
+            return
+
+        from app.training.train_attribute import train_attribute
+
+        train_attribute(args.category, args.attribute)
+
     elif args.command == 'classify':
         if args.image is None:
             print("Error: --image argument is required for classify")
             return
 
-        # Category classification
+        # Category classification (always zero-shot)
         from app.services.category_classifier_service import CategoryClassifierService
         from app.services.product_attribute_service import ProductAttributeService
+        from app.services.zero_shot_attribute_service import ZeroShotAttributeService
 
         category_service = CategoryClassifierService(embedding_model=embedding)
         category, cat_conf = category_service.classify(args.image)
         print(f"Category: {category} (confidence {cat_conf:.2f})")
 
         # Attribute classification based on category
-        attribute_service = ProductAttributeService(embedding_model=embedding)
-        attributes = attribute_service.classify(args.image, category=category)
+        if args.use_trained:
+            print("\nUsing trained models for attribute classification...")
+            attribute_service = ProductAttributeService(embedding_model=embedding)
+            try:
+                attributes = attribute_service.classify(args.image, category=category)
+            except Exception as e:
+                print(f"Error loading trained models: {e}")
+                print("\nFalling back to zero-shot classification...")
+                attribute_service = ZeroShotAttributeService(embedding_model=embedding)
+                attributes = attribute_service.classify(args.image, category=category)
+        else:
+            print("\nUsing zero-shot classification for attributes...")
+            attribute_service = ZeroShotAttributeService(embedding_model=embedding)
+            attributes = attribute_service.classify(args.image, category=category)
 
-        print("Attributes:")
+        print("\nAttributes:")
         for attr_name, info in attributes.items():
-            print(f" - {attr_name}: {info['label']} (confidence {info['confidence']:.2f})")
+            print(f" - {attr_name}: {info['value']} (confidence {info['confidence']:.2f})")
 
 
 if __name__ == "__main__":

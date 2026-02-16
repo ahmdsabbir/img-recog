@@ -51,7 +51,7 @@ class ClipEmbeddingModel(I_EmbeddingModel):
         return features.astype("float32")
     
     
-    def classify_img(self, img_path: str, labels: list[str]):
+    def classify_img_zeroshot(self, img_path: str, labels: list[str]):
         img = Image.open(img_path).convert("RGB")
 
         inputs = self.processor(

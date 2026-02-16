@@ -8,5 +8,5 @@ class I_EmbeddingModel(ABC):
         pass
 
     @abstractmethod
-    def classify_img(self, img_path: str, labels: list[str]):
+    def classify_img_zeroshot(self, img_path: str, labels: list[str]):
         pass

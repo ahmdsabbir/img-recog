@@ -53,4 +53,5 @@ Thumbs.db
 # Your product dataset (images)
 data/
 
-# FAISS index and ma
+# training
+*.pt
