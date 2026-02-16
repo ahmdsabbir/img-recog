@@ -52,7 +52,6 @@ class ClipEmbeddingModel(I_EmbeddingModel):
     
     
     def classify_img(self, img_path: str, labels: list[str]):
-        print('labesl: ', labels)
         img = Image.open(img_path).convert("RGB")
 
         inputs = self.processor(
