@@ -119,15 +119,44 @@ python -m app.cli query \
   --preprocessed_dir data/query_results
 ```
 
+### Classifying Images
+
+Classify an image against predefined labels using CLIP's zero-shot classification:
+
+```bash
+# Basic classification
+python -m app.cli classify --image path/to/image.jpg
+```
+
+**Default labels:**
+- red shoe
+- blue sneaker
+- leather bag
+- gray cap
+- black t-shirt
+
+The system returns probability scores for each label, ranked from highest to lowest.
+
+**Example output:**
+```
+a photo of red shoe -> 0.8234
+a photo of leather bag -> 0.6512
+a photo of blue sneaker -> 0.4321
+a photo of gray cap -> 0.2105
+a photo of black t-shirt -> 0.0987
+```
+
+To customize labels, edit the `labels` list in `app/cli.py`.
+
 ### CLI Options
 
 ```
 positional arguments:
-  {query,rebuild}       Command to run
+  {query,rebuild,classify}  Command to run
 
 options:
   -h, --help            Show help message
-  --image IMAGE         Path to query image (for query command)
+  --image IMAGE         Path to query/classify image
   --products_dir DIR    Directory of product images (for rebuild command)
   --save_preprocessed   Save preprocessed images to data/preprocessed
   --preprocessed_dir DIR

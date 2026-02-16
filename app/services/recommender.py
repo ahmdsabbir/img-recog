@@ -1,10 +1,10 @@
-from app.interfaces.embedding import EmbeddingModel
-from app.interfaces.vectore_store import VectorStore
 from app.config import settings
+from app.interfaces.embedding import I_EmbeddingModel
+from app.interfaces.vectore_store import I_VectorStore
 
 
 class RecommenderService:
-    def __init__(self, embedding_model: EmbeddingModel, vector_store: VectorStore):
+    def __init__(self, embedding_model: I_EmbeddingModel, vector_store: I_VectorStore):
         self.embedding_model = embedding_model
         self.vector_store = vector_store
 
@@ -13,4 +13,5 @@ class RecommenderService:
             image_path, save_preprocessed=save_preprocessed, save_dir=save_dir
         )
         ids, scores = self.vector_store.search(vector, settings.TOP_K)
+
         return ids, scores

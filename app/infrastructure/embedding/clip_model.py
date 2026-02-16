@@ -3,12 +3,13 @@ import torch
 import numpy as np
 from PIL import Image
 from transformers import CLIPProcessor, CLIPModel
+import torch.nn.functional as F
 
-from app.interfaces.embedding import EmbeddingModel
+from app.interfaces.embedding import I_EmbeddingModel
 from app.config import settings
 
 
-class ClipEmbeddingModel(EmbeddingModel):
+class ClipEmbeddingModel(I_EmbeddingModel):
     def __init__(self, preprocessor=None):
         self.device = settings.DEVICE
         self.model = CLIPModel.from_pretrained(settings.EMBEDDING_MODEL).to(self.device)
@@ -48,3 +49,33 @@ class ClipEmbeddingModel(EmbeddingModel):
         features = features / np.linalg.norm(features)
 
         return features.astype("float32")
+    
+    
+    def classify_img(self, img_path: str, labels: list[str]):
+        print('labesl: ', labels)
+        img = Image.open(img_path).convert("RGB")
+
+        inputs = self.processor(
+            text=labels,
+            images=img,
+            return_tensors="pt",
+            padding=True
+        )
+
+        inputs = {k: v.to(self.device) for k, v in inputs.items()}
+
+        with torch.no_grad():
+            outputs = self.model(**inputs)
+
+            logits_per_img = outputs.logits_per_image
+            probs = F.softmax(logits_per_img, dim=1)
+
+        probs = probs.cpu().numpy()[0]
+
+        results = sorted(
+            zip(labels, probs),
+            key=lambda x: x[1],
+            reverse=True
+        )
+
+        return results

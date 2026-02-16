@@ -3,7 +3,7 @@ import numpy as np
 from typing import List, Tuple
 
 
-class VectorStore(ABC):
+class I_VectorStore(ABC):
     @abstractmethod
     def add(self, ids: List[int], vectors: np.ndarray):
         pass

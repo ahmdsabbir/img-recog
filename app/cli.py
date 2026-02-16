@@ -10,8 +10,8 @@ from app.infrastructure.preprocessing.factory import make_preprocessor
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=["query", "rebuild"])
-    parser.add_argument("--image", help="Path to image file for query")
+    parser.add_argument("command", choices=["query", "rebuild", "classify"])
+    parser.add_argument("--image", help="Path to image file for query/classify")
     parser.add_argument(
         "--products_dir",
         default="data/products",
@@ -109,6 +109,24 @@ def main():
             print(
                 f"{i + 1}. Product ID: {pid} | Filename: {filename} | Distance: {score:.4f}"
             )
+
+    elif args.command == 'classify':
+        if args.image is None:
+            print("Error: --image argument is required for classify")
+            return
+
+        labels = [
+            "red shoe",
+            "blue sneaker",
+            "leather bag",
+            "gray cap",
+            "black t-shirt"
+        ]
+
+        results = embedding.classify_img(args.image, ["a photo of " + itm for itm in labels])
+
+        for label, score in results:
+            print(f'{label} -> {score: .4f}')
 
 
 if __name__ == "__main__":

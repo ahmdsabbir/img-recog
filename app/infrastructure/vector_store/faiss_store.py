@@ -2,11 +2,11 @@ import os
 import faiss
 import numpy as np
 
-from app.interfaces.vectore_store import VectorStore
+from app.interfaces.vectore_store import I_VectorStore
 from app.config import settings
 
 
-class FaissVectorStore(VectorStore):
+class FaissVectorStore(I_VectorStore):
     def __init__(self):
         self.index_path = settings.FAISS_INDEX_PATH
         self.dimension = settings.EMBEDDING_DIM
