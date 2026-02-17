@@ -2,6 +2,10 @@ from app.interfaces.cache import I_Cache
 
 
 class MemoryCache(I_Cache):
+    """
+    Simple in-memory cache implementing I_Cache interface.
+    """
+    
     def __init__(self):
         self._store = {}
 
@@ -20,3 +24,8 @@ class MemoryCache(I_Cache):
     
     def keys(self) -> list[str]:
         return list(self._store.keys())
+    
+
+    def delete(self, key: str):
+        if key in self._store:
+            del self._store[key]

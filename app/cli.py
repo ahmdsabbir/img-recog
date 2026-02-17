@@ -8,7 +8,7 @@ from app.services.recommender import RecommenderService
 from app.infrastructure.embedding.clip_model import ClipEmbeddingModel
 from app.infrastructure.vector_store.faiss_store import FaissVectorStore
 from app.infrastructure.preprocessing.factory import make_preprocessor
-from app.infrastructure.cache.memory_cache import MemoryCache
+from app.infrastructure.cache.chache import Cache
 
 
 def parse_command(command_str):
@@ -96,7 +96,7 @@ def main():
     embedding = ClipEmbeddingModel(preprocessor=preprocessor)
     vector_store = FaissVectorStore()
     recommender = RecommenderService(embedding, vector_store)
-    cache = MemoryCache()
+    cache = Cache()
 
     # ---------- Non-interactive rebuild ----------
     if args.command == "rebuild":

@@ -25,8 +25,10 @@ img-recog/
 │   │   └── types.py             # Type definitions
 │   ├── infrastructure/          # External dependencies (DB, models, etc.)
 │   │   ├── cache/               # In-memory caching layer
+│   │   │   ├── providers        # Cache providers
+│   │   │       ├── memory_cache # In memory cache implementation
+│   │   │   ├── cache.py         # Cache api, uses one of the providers
 │   │   │   ├── cache_keys.py    # Cache key generation utilities
-│   │   │   └── memory_cache.py  # Memory cache implementation
 │   │   ├── database/            # Database repositories
 │   │   │   ├── pg_repository.py # PostgreSQL repository
 │   │   │   └── sqlite_repository.py # SQLite repository
