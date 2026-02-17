@@ -91,41 +91,67 @@ img-recog/
 
 ## Usage
 
-### Building the Vector Index
+The CLI offers two modes of operation:
+- **Direct commands**: `rebuild` and `train` for one-time operations
+- **Interactive serve mode**: For running `query`, `classify`, `rebuild`, and `cache` commands
+
+### Interactive Serve Mode
+
+Start the interactive shell:
+
+```bash
+python -m app.cli serve
+```
+
+Once inside the interactive shell, you can run the following commands:
+
+#### Querying for Similar Products
+
+```bash
+# Basic query
+>>> query --image path/to/query.jpg
+
+# Query with trained model classification
+>>> classify --image path/to/image.jpg --use-trained
+```
+
+#### Rebuilding the Index
+
+```bash
+# Rebuild with default products directory
+>>> rebuild
+
+# Rebuild with custom products directory
+>>> rebuild --products_dir data/products
+```
+
+#### Managing the Cache
+
+```bash
+# List all cached keys
+>>> cache list
+
+# Clear all caches
+>>> cache clear
+```
+
+#### Exiting
+
+```bash
+>>> exit
+# or
+>>> quit
+```
+
+### Building the Vector Index (Direct Command)
 
 Before querying, you must build the FAISS index from your product images:
 
 ```bash
-# Basic rebuild (no preprocessing saved)
 python -m app.cli rebuild --products_dir data/products
-
-# Rebuild and save preprocessed images
-python -m app.cli rebuild --products_dir data/products --save_preprocessed
-
-# Rebuild with custom output directory
-python -m app.cli rebuild \
-  --products_dir data/products \
-  --save_preprocessed \
-  --preprocessed_dir data/my_preprocessed
 ```
 
-### Querying for Similar Products
-
-```bash
-# Basic query
-python -m app.cli query --image path/to/query.jpg
-
-# Query with preprocessed image saved for inspection
-python -m app.cli query --image path/to/query.jpg --save_preprocessed
-
-# Query for custom output directory
-python -m app.cli query \
-  --image path/to/query.jpg \
-  --save_preprocessed \
-  --preprocessed_dir data/query_results
-```
-
-### Training Attribute Classifiers
+### Training Attribute Classifiers (Direct Command)
 
 Train custom attribute classifiers using your labeled data:
 
@@ -179,17 +205,22 @@ Trained models are saved to `models/<category>/<attribute>/`:
 - `model.pt` - PyTorch model weights
 - `classes.json` - Class label mapping
 
-### Classifying Images
+### Classifying Images (Interactive Mode)
 
-Classify an image into categories and extract product attributes. The system supports two modes:
+Classify an image into categories and extract product attributes. First start the interactive shell:
+
+```bash
+python -m app.cli serve
+```
+
+Then run the classify command:
 
 #### Zero-Shot Classification (Default)
 
 Uses CLIP's text prompts to classify without any training data:
 
 ```bash
-# Zero-shot classification
-python -m app.cli classify --image path/to/image.jpg
+>>> classify --image path/to/image.jpg
 ```
 
 #### Trained Model Classification
@@ -197,8 +228,7 @@ python -m app.cli classify --image path/to/image.jpg
 Uses your trained attribute classifiers for improved accuracy:
 
 ```bash
-# Classification with trained models
-python -m app.cli classify --image path/to/image.jpg --use-trained
+>>> classify --image path/to/image.jpg --use-trained
 ```
 
 If trained models aren't found, the system automatically falls back to zero-shot classification.
@@ -226,22 +256,36 @@ Attributes:
 
 ### CLI Options
 
-```
-positional arguments:
-  {query,rebuild,classify,train}  Command to run
+#### Direct Commands
 
-options:
-  -h, --help            Show help message
-  --image IMAGE         Path to query/classify image
-  --products_dir DIR    Directory of product images (for rebuild command)
-  --category CATEGORY   Product category for train/classify (e.g., shoe, bag)
-  --attribute ATTRIBUTE Attribute to train (e.g., color, gender, age_group)
-  --use-trained         Use trained models for attribute classification
-  --save_preprocessed   Save preprocessed images to data/preprocessed
-  --preprocessed_dir DIR
-                        Custom directory for preprocessed images
-                        (default: data/preprocessed)
+```bash
+python -m app.cli {serve,rebuild,train} [options]
 ```
+
+**Options:**
+- `--products_dir DIR` - Directory of product images (for rebuild command, default: `data/products`)
+- `--category CATEGORY` - Product category for training (e.g., shoe, bag)
+- `--attribute ATTRIBUTE` - Attribute to train (e.g., color, gender, age_group)
+
+#### Interactive Serve Commands
+
+Once inside `serve` mode, the following commands are available:
+
+**`query`** - Find similar products
+- `--image IMAGE` - Path to query image
+
+**`classify`** - Classify image and extract attributes
+- `--image IMAGE` - Path to image to classify
+- `--use-trained` - Use trained models for attribute classification (fallback to zero-shot if not found)
+
+**`rebuild`** - Rebuild the FAISS index
+- `--products_dir DIR` - Directory of product images (default: `data/products`)
+
+**`cache`** - Manage the in-memory cache
+- `cache list` - List all cached keys
+- `cache clear` - Clear all caches
+
+**`exit` / `quit`** - Exit the interactive shell
 
 ## Preprocessing
 
@@ -319,28 +363,39 @@ mypy app/
    - Stores vectors in FAISS index for fast search
    - Saves index to `data/faiss_index/index.bin`
 
-2. **Querying (query)**
+2. **Interactive Serve Mode (serve)**
+   - Starts an interactive shell for running query, classify, rebuild, and cache commands
+   - Initializes CLIP embedding model, FAISS vector store, and in-memory cache once
+   - Allows rapid execution of multiple commands without reinitializing models
+
+3. **Querying (query)**
    - Loads and preprocesses the query image
    - Generates CLIP embedding
    - Searches FAISS index for nearest neighbors
    - Returns top-K similar product IDs with distance scores
 
-3. **Training (train)**
+4. **Training (train)**
    - Loads training images from `data/training/<category>/<attribute>/<class>/`
    - Generates CLIP embeddings for all training images
    - Trains a linear classifier (AttributeHead) on top of CLIP embeddings
    - Saves model weights and class mappings to `models/<category>/<attribute>/`
    - Uses transfer learning - CLIP features are frozen, only the classifier head is trained
 
-4. **Classification (classify)**
+5. **Classification (classify)**
    - Loads and preprocesses the query image
    - **Category**: Uses CLIP zero-shot classification to determine product type
    - **Attributes**:
      - **Zero-shot mode**: Uses CLIP text prompts to predict attributes
-     - **Trained mode**: Uses trained AttributeHead models for predictions
+     - **Trained mode**: Uses trained AttributeHead models for predictions (cached for performance)
    - Returns category and attributes with confidence scores
+   - **Caching**: Trained models are cached in memory for faster repeated classifications
 
-5. **Preprocessing Pipeline**
+6. **Cache Management (cache)**
+   - **List**: View all currently cached items (models, embeddings, etc.)
+   - **Clear**: Clear all cached items to free memory
+   - Automatically speeds up repeated queries/classifications by storing results
+
+7. **Preprocessing Pipeline**
    - Ensures consistent input format (RGB, square, 224×224)
    - Removes background noise for better matching
    - Preserves product aspect ratio via square padding

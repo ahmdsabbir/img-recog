@@ -34,17 +34,30 @@
 import os
 import json
 import torch
+
+from app.interfaces.cache import I_Cache
 from app.interfaces.embedding import I_EmbeddingModel
 from app.models.attribute_head import AttributeHead
 from app.config import settings
+from app.infrastructure.cache.cache_keys import CacheKeys
 
 
 class ProductAttributeService:
-    def __init__(self, embedding_model: I_EmbeddingModel):
+    def __init__(self, embedding_model: I_EmbeddingModel, cache: I_Cache):
         self.embedding_model = embedding_model
         self.device = settings.DEVICE
+        self.cache = cache
+    
 
     def _load_attribute_model(self, category: str, attribute: str):
+        # See if it's cached or not
+        chache_key = CacheKeys.attribute_model(category=category, attribute=attribute)
+
+        cached = self.cache.get(chache_key)
+        if cached:
+            return cached
+        
+        # it's not chached
         base_path = f"models/{category}/{attribute}"
 
         model_path = os.path.join(base_path, "model.pt")
@@ -71,7 +84,11 @@ class ProductAttributeService:
         model.to(self.device)
         model.eval()
 
+        # now cache it
+        self.cache.set(chache_key, (model, classes))
+
         return model, classes
+
 
     def classify(self, img_path: str, category: str):
         embedding = self.embedding_model.encode_image(img_path)
