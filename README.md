@@ -17,7 +17,14 @@ A visual product recommendation system using CLIP embeddings and FAISS vector se
 ```
 img-recog/
 ├── app/
-│   ├── cli.py                   # CLI entry point (serve, rebuild, train)
+│   ├── cli/                     # CLI module
+│   │   ├── main.py              # CLI entry point (serve, rebuild, train)
+│   │   ├── parser.py            # Command parser for interactive mode
+│   │   ├── query.py             # Query command handler
+│   │   ├── classify.py          # Classify command handler
+│   │   ├── rebuild.py           # Rebuild command handler
+│   │   ├── train.py             # Train command handler
+│   │   └── cache.py             # Cache command handler
 │   ├── config.py                # Configuration settings
 │   ├── container.py             # Dependency injection container
 │   ├── domain/                  # Domain entities
@@ -138,6 +145,20 @@ img-recog/
 
 ## Usage
 
+The CLI can be invoked in two ways:
+
+### Running the CLI
+
+**As a module:**
+```bash
+python -m app.cli.main <command>
+```
+
+**Direct execution:**
+```bash
+python app/cli/main.py <command>
+```
+
 The CLI offers two modes of operation:
 - **Direct commands**: `rebuild` and `train` for one-time operations
 - **Interactive serve mode**: For running `query`, `classify`, `rebuild`, and `cache` commands
@@ -147,7 +168,7 @@ The CLI offers two modes of operation:
 Start the interactive shell:
 
 ```bash
-python -m app.cli serve
+python -m app.cli.main serve
 ```
 
 Once inside the interactive shell, you can run the following commands:
@@ -195,7 +216,7 @@ Once inside the interactive shell, you can run the following commands:
 Before querying, you must build the FAISS index from your product images:
 
 ```bash
-python -m app.cli rebuild --products_dir data/products
+python -m app.cli.main rebuild --products_dir data/products
 ```
 
 ### Training Attribute Classifiers (Direct Command)
@@ -204,9 +225,9 @@ Train custom attribute classifiers using your labeled data:
 
 ```bash
 # Train a specific attribute for a category
-python -m app.cli train --category shoe --attribute color
-python -m app.cli train --category shoe --attribute gender
-python -m app.cli train --category shoe --attribute age_group
+python -m app.cli.main train --category shoe --attribute color
+python -m app.cli.main train --category shoe --attribute gender
+python -m app.cli.main train --category shoe --attribute age_group
 ```
 
 **Training Data Structure:**
@@ -257,7 +278,7 @@ Trained models are saved to `models/<category>/<attribute>/`:
 Classify an image into categories and extract product attributes. First start the interactive shell:
 
 ```bash
-python -m app.cli serve
+python -m app.cli.main serve
 ```
 
 Then run the classify command:
@@ -306,7 +327,9 @@ Attributes:
 #### Direct Commands
 
 ```bash
-python -m app.cli {serve,rebuild,train} [options]
+python -m app.cli.main {serve,rebuild,train} [options]
+# or
+python app/cli/main.py {serve,rebuild,train} [options]
 ```
 
 **Options:**

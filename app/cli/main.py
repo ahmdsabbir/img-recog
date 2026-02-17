@@ -87,7 +87,11 @@ def parse_command(command_str):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("command", choices=["serve", "rebuild", "train"])
-    parser.add_argument("--products_dir", default="data/products", help="Directory of product images for rebuild")
+    parser.add_argument(
+        "--products_dir",
+        default="data/products",
+        help="Directory of product images for rebuild",
+    )
     parser.add_argument("--category", help="Category for training")
     parser.add_argument("--attribute", help="Attribute for training")
     args = parser.parse_args()
@@ -116,7 +120,9 @@ def main():
         vector_store.add(ids, vectors)
         vector_store.save()
 
-        mapping_path = os.path.join(os.path.dirname(vector_store.index_path), "id_to_filename.json")
+        mapping_path = os.path.join(
+            os.path.dirname(vector_store.index_path), "id_to_filename.json"
+        )
         with open(mapping_path, "w") as f:
             json.dump(id_to_filename, f, indent=2)
 
@@ -165,7 +171,9 @@ def main():
                     vector_store.add(ids, vectors)
                     vector_store.save()
 
-                    mapping_path = os.path.join(os.path.dirname(vector_store.index_path), "id_to_filename.json")
+                    mapping_path = os.path.join(
+                        os.path.dirname(vector_store.index_path), "id_to_filename.json"
+                    )
                     with open(mapping_path, "w") as f:
                         json.dump(id_to_filename, f, indent=2)
 
@@ -184,14 +192,19 @@ def main():
 
                     vector_store.load()
                     ids, scores = recommender.recommend(img_path)
-                    mapping_path = os.path.join(os.path.dirname(settings.FAISS_INDEX_PATH), "id_to_filename.json")
+                    mapping_path = os.path.join(
+                        os.path.dirname(settings.FAISS_INDEX_PATH),
+                        "id_to_filename.json",
+                    )
                     with open(mapping_path, "r") as f:
                         id_to_filename = json.load(f)
 
                     print("\nTop Results:")
                     for i, (pid, score) in enumerate(zip(ids, scores)):
                         filename = id_to_filename.get(str(pid), "unknown")
-                        print(f"{i + 1}. Product ID: {pid} | Filename: {filename} | Distance: {score:.4f}")
+                        print(
+                            f"{i + 1}. Product ID: {pid} | Filename: {filename} | Distance: {score:.4f}"
+                        )
 
                 # ---------- CLASSIFY ----------
                 elif cmd["command"] == "classify":
@@ -202,32 +215,54 @@ def main():
                         print("Please provide valid --image for classify")
                         continue
 
-                    from app.services.category_classifier_service import CategoryClassifierService
-                    from app.services.product_attribute_service import ProductAttributeService
-                    from app.services.zero_shot_attribute_service import ZeroShotAttributeService
+                    from app.services.category_classifier_service import (
+                        CategoryClassifierService,
+                    )
+                    from app.services.product_attribute_service import (
+                        ProductAttributeService,
+                    )
+                    from app.services.zero_shot_attribute_service import (
+                        ZeroShotAttributeService,
+                    )
 
-                    category_service = CategoryClassifierService(embedding_model=embedding)
+                    category_service = CategoryClassifierService(
+                        embedding_model=embedding
+                    )
                     category, cat_conf = category_service.classify(img_path)
                     print(f"Category: {category} (confidence {cat_conf:.2f})")
 
                     if use_trained:
                         print("\nUsing trained models for attribute classification...")
-                        attribute_service = ProductAttributeService(embedding_model=embedding, cache=cache)
+                        attribute_service = ProductAttributeService(
+                            embedding_model=embedding, cache=cache
+                        )
                         try:
-                            attributes = attribute_service.classify(img_path, category=category)
+                            attributes = attribute_service.classify(
+                                img_path, category=category
+                            )
                         except Exception as e:
                             print(f"Error loading trained models: {e}")
                             print("\nFalling back to zero-shot classification...")
-                            attribute_service = ZeroShotAttributeService(embedding_model=embedding)
-                            attributes = attribute_service.classify(img_path, category=category)
+                            attribute_service = ZeroShotAttributeService(
+                                embedding_model=embedding
+                            )
+                            attributes = attribute_service.classify(
+                                img_path, category=category
+                            )
                     else:
                         print("\nUsing zero-shot classification for attributes...")
-                        attribute_service = ZeroShotAttributeService(embedding_model=embedding)
-                        attributes = attribute_service.classify(img_path, category=category)
+                        attribute_service = ZeroShotAttributeService(
+                            embedding_model=embedding
+                        )
+                        attributes = attribute_service.classify(
+                            img_path, category=category
+                        )
 
                     print("\nAttributes:")
                     for attr_name, info in attributes.items():
-                        print(f" - {attr_name}: {info['value']} (confidence {info['confidence']:.2f})")
+                        print(
+                            f" - {attr_name}: {info['value']} (confidence {info['confidence']:.2f})"
+                        )
 
                 # ---------- CACHE ----------
                 elif cmd["command"] == "cache":
@@ -240,7 +275,9 @@ def main():
                         for k in keys:
                             print(" -", k)
                     else:
-                        print("MemoryCache is live and will speed up repeated queries/classifications")
+                        print(
+                            "MemoryCache is live and will speed up repeated queries/classifications"
+                        )
 
                 else:
                     print(f"Unknown command: {cmd['command']}")
