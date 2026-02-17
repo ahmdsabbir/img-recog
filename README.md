@@ -17,27 +17,72 @@ A visual product recommendation system using CLIP embeddings and FAISS vector se
 ```
 img-recog/
 ├── app/
-│   ├── cli.py                   # CLI entry point
+│   ├── cli.py                   # CLI entry point (serve, rebuild, train)
 │   ├── config.py                # Configuration settings
+│   ├── container.py             # Dependency injection container
 │   ├── domain/                  # Domain entities
+│   │   ├── entities.py          # Core domain entities
+│   │   └── types.py             # Type definitions
 │   ├── infrastructure/          # External dependencies (DB, models, etc.)
-│   │   ├── embedding/          # CLIP embedding model
-│   │   ├── preprocessing/      # Image preprocessors
-│   │   └── vector_store/       # FAISS vector store
+│   │   ├── cache/               # In-memory caching layer
+│   │   │   ├── cache_keys.py    # Cache key generation utilities
+│   │   │   └── memory_cache.py  # Memory cache implementation
+│   │   ├── database/            # Database repositories
+│   │   │   ├── pg_repository.py # PostgreSQL repository
+│   │   │   └── sqlite_repository.py # SQLite repository
+│   │   ├── embedding/           # CLIP embedding model
+│   │   │   ├── clip_model.py    # CLIP implementation
+│   │   │   └── dummy_model.py   # Dummy model for testing
+│   │   ├── preprocessing/       # Image preprocessors
+│   │   │   ├── factory.py       # Preprocessor factory
+│   │   │   ├── passthrough_preprocessor.py
+│   │   │   └── rembg_preprocessor.py
+│   │   └── vector_store/        # FAISS vector store
+│   │       ├── faiss_store.py   # FAISS implementation
+│   │       └── in_memory_store.py
 │   ├── interfaces/             # Abstract interfaces
+│   │   ├── cache.py             # Cache interface
+│   │   ├── embedding.py         # Embedding interface
+│   │   ├── feedback.py          # Feedback interface
+│   │   ├── preprocessor.py      # Preprocessor interface
+│   │   ├── repository.py        # Repository interface
+│   │   └── vectore_store.py     # Vector store interface
 │   ├── models/                 # PyTorch model definitions
+│   │   ├── attribute_head.py    # Attribute classifier head
+│   │   ├── category_head.py     # Category classifier head
+│   │   └── clip_model.py        # CLIP model wrapper
 │   ├── services/               # Business logic
+│   │   ├── category_classifier_service.py
+│   │   ├── feedback_service.py
+│   │   ├── product_attribute_service.py
+│   │   ├── recommender.py       # Recommendation engine
+│   │   └── zero_shot_attribute_service.py
 │   └── training/               # Training scripts and utilities
+│       ├── dataset_helpers.py
+│       ├── train_attribute.py
+│       └── train_category.py
 ├── data/
 │   ├── products/               # Product images for indexing
 │   ├── preprocessed/           # Saved preprocessed images
 │   ├── training/               # Training data organized by category/attribute
 │   └── faiss_index/            # FAISS index files
+│       └── id_to_filename.json # ID to filename mapping
 ├── models/                     # Trained attribute classifier models
+│   └── <category>/             # e.g., shoe, bag
+│       └── <attribute>/        # e.g., color, gender
+│           ├── model.pt        # PyTorch model weights
+│           └── classes.json    # Class label mapping
+├── scripts/                    # Utility scripts
+│   ├── build_index.py          # Standalone index builder
+│   └── retrain.py              # Retraining utilities
 ├── tests/                      # Test suite
+│   ├── __init__.py
+│   └── test_preprocessing.py
+├── conftest.py                 # Pytest configuration
 ├── requirements-prod.txt       # Production dependencies
 ├── requirements-dev.txt        # Development dependencies
-└── .env                        # Environment configuration
+├── .env                        # Environment configuration
+└── README.md                   # This file
 ```
 
 ## Installation
