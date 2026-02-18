@@ -1,7 +1,10 @@
 from app.services.category_classifier_service import CategoryClassifierService
 from app.services.product_attribute_service import ProductAttributeService
 from app.services.zero_shot_attribute_service import ZeroShotAttributeService
+from cli.message import Message
 
+
+Msg = Message()
 
 def run_classify(embedding, cache, img_path: str, use_trained: bool = False) -> None:
     """
@@ -19,7 +22,7 @@ def run_classify(embedding, cache, img_path: str, use_trained: bool = False) -> 
     )
     attributes = attribute_service.classify(img_path, category=category)
 
-    print("\nAttributes:")
+    print(Msg.info("\nAttributes:"))
     for attr_name, info in attributes.items():
         print(f" - {attr_name}: {info['value']} (confidence {info['confidence']:.2f})")
 
@@ -27,12 +30,12 @@ def run_classify(embedding, cache, img_path: str, use_trained: bool = False) -> 
 def _build_attribute_service(embedding, cache, category: str, use_trained: bool):
     """Return the appropriate attribute service, with fallback logic."""
     if use_trained:
-        print("\nUsing trained models for attribute classification...")
+        print(Msg.highlight("\nUsing trained models for attribute classification..."))
         try:
             return ProductAttributeService(embedding_model=embedding, cache=cache)
         except Exception as e:
-            print(f"Error loading trained models: {e}")
-            print("Falling back to zero-shot classification...")
+            print(Msg.alert(f"Error loading trained models: {e}"))
+            print(Msg.alert("Falling back to zero-shot classification..."))
 
-    print("\nUsing zero-shot classification for attributes...")
+    print(Msg.highlight("\nUsing zero-shot classification for attributes..."))
     return ZeroShotAttributeService(embedding_model=embedding)

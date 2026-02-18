@@ -1,3 +1,8 @@
+from cli.message import Message
+
+
+Msg = Message()
+
 def run_cache(cache, *, clear: bool = False, list_keys: bool = False) -> None:
     """
     Inspect or manage the in-memory cache.
@@ -7,11 +12,11 @@ def run_cache(cache, *, clear: bool = False, list_keys: bool = False) -> None:
     """
     if clear:
         cache.clear()
-        print("All caches cleared.")
+        print(Msg.info("All caches cleared."))
     elif list_keys:
         keys = cache.keys()
-        print(f"Listing {len(keys)} keys:")
+        print(Msg.highlight(f"Listing {len(keys)} keys:"))
         for k in keys:
             print(" -", k)
     else:
-        print("Cache is live and will speed up repeated queries/classifications.")
+        print(Msg.highlight("Cache is live and will speed up repeated queries/classifications."))

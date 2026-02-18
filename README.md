@@ -18,24 +18,13 @@ A visual product recommendation system using CLIP embeddings and FAISS vector se
 img-recog/
 ├── app/                         # Core business logic library
 │   ├── config.py                # Configuration settings
-│   ├── cli/                     # CLI interface
-│   │   ├── main.py              # CLI entry point (serve, rebuild, train)
-│   │   ├── parser.py            # Command parser for interactive mode
-│   │   └── commands/            # Command handlers
-│   │       ├── query.py         # Query command handler
-│   │       ├── classify.py      # Classify command handler
-│   │       ├── rebuild.py       # Rebuild command handler
-│   │       ├── train.py         # Train command handler
-│   │       └── cache.py         # Cache command handler
 │   ├── domain/                  # Domain entities
 │   │   ├── entities.py          # Core domain entities
 │   │   └── types.py             # Type definitions
 │   ├── infrastructure/          # External dependencies (DB, models, etc.)
 │   │   ├── cache/               # In-memory caching layer
-│   │   │   ├── providers        # Cache providers
-│   │   │       ├── memory_cache # In memory cache implementation
-│   │   │   ├── cache.py         # Cache api, uses one of the providers
-│   │   │   ├── cache_keys.py    # Cache key generation utilities
+│   │   │   ├── cache.py         # Cache implementation
+│   │   │   └── cache_keys.py    # Cache key generation utilities
 │   │   ├── database/            # Database repositories
 │   │   │   ├── pg_repository.py # PostgreSQL repository
 │   │   │   └── sqlite_repository.py # SQLite repository
@@ -70,6 +59,17 @@ img-recog/
 │       ├── dataset_helpers.py
 │       ├── train_attribute.py
 │       └── train_category.py
+├── cli/                         # CLI interface
+│   ├── main.py                  # CLI entry point (serve, rebuild, train)
+│   ├── message.py               # Colored terminal output formatting
+│   ├── container.py             # Dependency injection container
+│   ├── parser.py                # Command parser for interactive mode
+│   └── commands/                # Command handlers
+│       ├── query.py             # Query command handler
+│       ├── classify.py          # Classify command handler
+│       ├── rebuild.py           # Rebuild command handler
+│       ├── train.py             # Train command handler
+│       └── cache.py             # Cache command handler
 ├── data/
 │   ├── products/               # Product images for indexing
 │   ├── preprocessed/           # Saved preprocessed images
