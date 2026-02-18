@@ -1,4 +1,10 @@
 from abc import ABC, abstractmethod
+from typing import TypedDict
+
+
+class I_CacheInfo(TypedDict):
+    num_entries: int
+    size: str
 
 
 class I_Cache(ABC):
@@ -38,5 +44,12 @@ class I_Cache(ABC):
     def delete(self, key: str):
         """
         Delete a key from the cache.
+        """
+        pass
+
+    @abstractmethod
+    def info(self) -> I_CacheInfo:
+        """
+        Get cache status
         """
         pass

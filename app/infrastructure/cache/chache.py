@@ -24,3 +24,6 @@ class Cache(I_Cache):
 
     def delete(self, key: str):
         self._provider.delete(key)
+
+    def info(self):
+        return self._provider.info()

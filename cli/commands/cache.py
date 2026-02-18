@@ -45,7 +45,8 @@ def run_cache(
             print(Msg.alert(f"Cache key not found: {key}"))
 
     else:  # info or None
-        keys = cache.keys()
-        print(Msg.highlight(f"Cache status: {len(keys)} entries stored"))
-        print(Msg.info("Cache is active and will speed up repeated queries/classifications."))
+        info = cache.info()
+        print(Msg.highlight("Cache status:"))
+        print (Msg.neutral(f'\tNumber of entries: {info["num_entries"]}'))
+        print(Msg.neutral(f'\tSpace taken: {info["size"]} (it\'s not the most accurate, but this\'ll do)'))
 

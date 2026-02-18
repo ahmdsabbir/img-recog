@@ -1,4 +1,5 @@
 from app.interfaces.cache import I_Cache
+from sys import getsizeof
 
 
 class MemoryCache(I_Cache):
@@ -29,3 +30,15 @@ class MemoryCache(I_Cache):
     def delete(self, key: str):
         if key in self._store:
             del self._store[key]
+
+
+    def info(self):
+        keys = self.keys()
+        size = getsizeof(self._store)
+        for k, v in self._store.items():
+            size += getsizeof(k) + getsizeof(v)
+        
+        return {
+            "num_entries": len(keys),
+            "size": f"{round(size / (1024 * 1024), 4)} Mb"
+        }

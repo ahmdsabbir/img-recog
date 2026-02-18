@@ -160,6 +160,7 @@ def main():
 
                 # ---------- CACHE ----------
                 elif cmd["command"] == "cache":
+                    print('cmd: ', cmd)
                     cache.run_cache(
                         container.cache,
                         sub_command=cmd["cache_action"],
