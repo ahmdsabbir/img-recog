@@ -196,8 +196,14 @@ Once inside the interactive shell, you can run the following commands:
 #### Managing the Cache
 
 ```bash
+# Show cache status and entry count
+>>> cache info
+
 # List all cached keys
 >>> cache list
+
+# Delete a specific cache key
+>>> cache delete --key <cache_key>
 
 # Clear all caches
 >>> cache clear
@@ -352,7 +358,9 @@ Once inside `serve` mode, the following commands are available:
 - `--products_dir DIR` - Directory of product images (default: `data/products`)
 
 **`cache`** - Manage the in-memory cache
+- `cache info` - Show cache status and entry count
 - `cache list` - List all cached keys
+- `cache delete --key <key>` - Delete a specific cache key
 - `cache clear` - Clear all caches
 
 **`exit` / `quit`** - Exit the interactive shell
@@ -461,7 +469,9 @@ mypy app/
    - **Caching**: Trained models are cached in memory for faster repeated classifications
 
 6. **Cache Management (cache)**
-   - **List**: View all currently cached items (models, embeddings, etc.)
+   - **Info**: View cache status and entry count
+   - **List**: View all currently cached keys
+   - **Delete**: Remove a specific cache entry by key
    - **Clear**: Clear all cached items to free memory
    - Automatically speeds up repeated queries/classifications by storing results
 

@@ -23,8 +23,8 @@ def parse_command(command_str):
         "category": None,
         "attribute": None,
         "use_trained": False,
-        "clear": False,
-        "list": False,
+        "cache_action": None,  # list, clear, delete, info
+        "cache_key": None,  # for delete command
     }
 
     if not parts:
@@ -52,6 +52,9 @@ def parse_command(command_str):
         elif p == "--attribute" and i + 1 < len(parts):
             cmd_args["attribute"] = parts[i + 1]
             i += 2
+        elif p == "--key" and i + 1 < len(parts):
+            cmd_args["cache_key"] = parts[i + 1]
+            i += 2
 
         # Flags without values
         elif p == "--save-preprocessed":
@@ -60,20 +63,15 @@ def parse_command(command_str):
         elif p == "--use-trained":
             cmd_args["use_trained"] = True
             i += 1
-        elif p == "--clear":
-            cmd_args["clear"] = True
-            i += 1
         else:
             # Check if it's a cache subcommand
             if cmd_args["command"] == "cache":
-                if p == "list":
-                    cmd_args["list"] = True
-                    i += 1
-                elif p == "clear":
-                    cmd_args["clear"] = True
+                if p in ("list", "clear", "delete", "info"):
+                    cmd_args["cache_action"] = p
                     i += 1
                 else:
                     print(Msg.alert(f"Unknown cache subcommand: {p}"))
+                    print(Msg.info("Valid subcommands: list, clear, delete, info"))
                     i += 1
             else:
                 print(Msg.alert(f"Unknown argument: {p}"))
@@ -163,7 +161,9 @@ def main():
                 # ---------- CACHE ----------
                 elif cmd["command"] == "cache":
                     cache.run_cache(
-                        container.cache, clear=cmd["clear"], list_keys=cmd["list"]
+                        container.cache,
+                        sub_command=cmd["cache_action"],
+                        key=cmd["cache_key"],
                     )
 
                 else:
