@@ -17,4 +17,4 @@ class Container:
         self.embedding = ClipEmbeddingModel(preprocessor=preprocessor)
         self.vectore_store = FaissVectorStore()
         self.recommender = RecommenderService(self.embedding, self.vectore_store)
-        self.cache = Cache() 
+        self.cache = Cache()

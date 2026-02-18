@@ -3,9 +3,11 @@ import argparse
 import shlex
 
 from app.config import settings
-from app.cli.container import Container
-from app.cli.commands import rebuild, train, query, classify, cache
+from cli.container import Container
+from cli.commands import rebuild, train, query, classify, cache
+from cli.message import Message
 
+Msg = Message()
 
 def parse_command(command_str):
     """
@@ -71,10 +73,10 @@ def parse_command(command_str):
                     cmd_args["clear"] = True
                     i += 1
                 else:
-                    print(f"Unknown cache subcommand: {p}")
+                    print(Msg.alert(f"Unknown cache subcommand: {p}"))
                     i += 1
             else:
-                print(f"Unknown argument: {p}")
+                print(Msg.alert(f"Unknown argument: {p}"))
                 i += 1
 
     return cmd_args
@@ -104,19 +106,19 @@ def main():
     # ---------- Non-interactive train ----------
     if args.command == "train":
         if not args.category or not args.attribute:
-            print("Please provide --category and --attribute for training")
+            print(Msg.info("Please provide --category and --attribute for training"))
             return
         train.run_train(args.category, args.attribute)
         return
 
     # ---------- Interactive serve ----------
     if args.command == "serve":
-        print("Entering interactive serve mode. Type 'exit' to quit.")
+        print(Msg.highlight("Entering interactive serve mode. Type 'exit' to quit."))
         while True:
             try:
-                command_str = input("\n>>> ").strip()
+                command_str = input(Msg.highlight('\n>>> ')).strip()
                 if command_str.lower() in ["exit", "quit"]:
-                    print("Exiting serve...")
+                    print(Msg.info("Exiting serve..."))
                     break
 
                 cmd = parse_command(command_str)
@@ -134,11 +136,11 @@ def main():
                 elif cmd["command"] == "query":
                     img_path = cmd["image"]
                     if not img_path or not os.path.exists(img_path):
-                        print("Please provide valid --image for query")
+                        print(Msg.alert("Please provide valid --image for query"))
                         continue
 
                     if not os.path.exists(settings.FAISS_INDEX_PATH):
-                        print("FAISS index not found. Rebuild index first.")
+                        print(Msg.alert("FAISS index not found. Rebuild index first."))
                         continue
 
                     query.run_query(
@@ -165,10 +167,10 @@ def main():
                     )
 
                 else:
-                    print(f"Unknown command: {cmd['command']}")
+                    print(Msg.alert(f"Unknown command: {cmd['command']}"))
 
             except KeyboardInterrupt:
-                print("\nExiting serve...")
+                print(Msg.info("\nExiting serve..."))
                 break
 
 

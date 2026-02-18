@@ -16,17 +16,17 @@ A visual product recommendation system using CLIP embeddings and FAISS vector se
 
 ```
 img-recog/
-├── app/
-│   ├── cli/                     # CLI module
+├── app/                         # Core business logic library
+│   ├── config.py                # Configuration settings
+│   ├── cli/                     # CLI interface
 │   │   ├── main.py              # CLI entry point (serve, rebuild, train)
 │   │   ├── parser.py            # Command parser for interactive mode
-│   │   ├── query.py             # Query command handler
-│   │   ├── classify.py          # Classify command handler
-│   │   ├── rebuild.py           # Rebuild command handler
-│   │   ├── train.py             # Train command handler
-│   │   └── cache.py             # Cache command handler
-│   ├── config.py                # Configuration settings
-│   ├── container.py             # Dependency injection container
+│   │   └── commands/            # Command handlers
+│   │       ├── query.py         # Query command handler
+│   │       ├── classify.py      # Classify command handler
+│   │       ├── rebuild.py       # Rebuild command handler
+│   │       ├── train.py         # Train command handler
+│   │       └── cache.py         # Cache command handler
 │   ├── domain/                  # Domain entities
 │   │   ├── entities.py          # Core domain entities
 │   │   └── types.py             # Type definitions
@@ -151,12 +151,12 @@ The CLI can be invoked in two ways:
 
 **As a module:**
 ```bash
-python -m app.cli.main <command>
+python -m cli.main <command>
 ```
 
 **Direct execution:**
 ```bash
-python app/cli/main.py <command>
+python cli/main.py <command>
 ```
 
 The CLI offers two modes of operation:
@@ -168,7 +168,7 @@ The CLI offers two modes of operation:
 Start the interactive shell:
 
 ```bash
-python -m app.cli.main serve
+python -m cli.main serve
 ```
 
 Once inside the interactive shell, you can run the following commands:
@@ -216,7 +216,7 @@ Once inside the interactive shell, you can run the following commands:
 Before querying, you must build the FAISS index from your product images:
 
 ```bash
-python -m app.cli.main rebuild --products_dir data/products
+python -m cli.main rebuild --products_dir data/products
 ```
 
 ### Training Attribute Classifiers (Direct Command)
@@ -225,9 +225,9 @@ Train custom attribute classifiers using your labeled data:
 
 ```bash
 # Train a specific attribute for a category
-python -m app.cli.main train --category shoe --attribute color
-python -m app.cli.main train --category shoe --attribute gender
-python -m app.cli.main train --category shoe --attribute age_group
+python -m cli.main train --category shoe --attribute color
+python -m cli.main train --category shoe --attribute gender
+python -m cli.main train --category shoe --attribute age_group
 ```
 
 **Training Data Structure:**
@@ -278,7 +278,7 @@ Trained models are saved to `models/<category>/<attribute>/`:
 Classify an image into categories and extract product attributes. First start the interactive shell:
 
 ```bash
-python -m app.cli.main serve
+python -m cli.main serve
 ```
 
 Then run the classify command:
@@ -327,9 +327,9 @@ Attributes:
 #### Direct Commands
 
 ```bash
-python -m app.cli.main {serve,rebuild,train} [options]
+python -m cli.main {serve,rebuild,train} [options]
 # or
-python app/cli/main.py {serve,rebuild,train} [options]
+python cli/main.py {serve,rebuild,train} [options]
 ```
 
 **Options:**
